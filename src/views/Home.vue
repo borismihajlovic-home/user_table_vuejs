@@ -8,57 +8,31 @@
 	</header>
 	<section class="container data-container">
 		<div class="input-holder">
-			<input type="text" placeholder="Search...">
+			<i class="fas fa-search"></i>
+			<input @input="filter" type="text" placeholder="Search...">
 		</div>
 
-		<div v-if="isLoading" class="loading">Loading... Please wait.</div>
+		<div v-if="isLoading === true" class="loading">Loading... Please wait.</div>
 		<div v-if="!isLoading && isNoUser" class="no-data">No users found.</div>
 		<div v-if="!isLoading && isError" class="err">There was an error. Please try again.</div>
 
 		<div v-if="!isLoading && !isError && !isNoUser" class="users-table">
 			<div class="users-table-header">
-				<div class="sorted" id="name">Name <i class="fas fa-sort-down"></i></div>
-				<div id="balance">Balance <i class="fas fa-sort-down"></i></div>
-				<div id="isActive">Active <i class="fas fa-sort-down"></i></div>
-				<div id="registered">Registered <i class="fas fa-sort-down"></i></div>
-				<div id="state">State <i class="fas fa-sort-down"></i></div>
-				<div id="country">Country <i class="fas fa-sort-down"></i></div>
+				<div id="fullName" @click="sortByColumn">Name <i v-if="sortedColumn === 'fullName'" class="fas fa-sort-down"></i></div>
+				<div id="balance" @click="sortByColumn">Balance <i v-if="sortedColumn === 'balance'" class="fas fa-sort-down"></i></div>
+				<div id="isActive" @click="sortByColumn">Active <i v-if="sortedColumn === 'isActive'" class="fas fa-sort-down"></i></div>
+				<div id="registered" @click="sortByColumn">Registered <i v-if="sortedColumn === 'registered'" class="fas fa-sort-down"></i></div>
+				<div id="state" @click="sortByColumn">State <i v-if="sortedColumn === 'state'" class="fas fa-sort-down"></i></div>
+				<div id="country" @click="sortByColumn">Country <i v-if="sortedColumn === 'country'" class="fas fa-sort-down"></i></div>
 			</div>
 			<div class="users-data-container">
-				<div class="user-data-row">
-					<div>Boris</div>
-					<div>12345679</div>
-					<div>no</div>
-					<div>yes</div>
-					<div>oregon</div>
-					<div>Unated State</div>
-				</div>
-
-				<div class="user-data-row">
-					<div>Boris</div>
-					<div>12345679</div>
-					<div>no</div>
-					<div>yes</div>
-					<div>oregon</div>
-					<div>Unated State</div>
-				</div>
-
-				<div class="user-data-row">
-					<div>Boris</div>
-					<div>12345679</div>
-					<div>no</div>
-					<div>yes</div>
-					<div>oregon</div>
-					<div>Unated State</div>
-				</div>
-
-				<div class="user-data-row">
-					<div>Boris</div>
-					<div>12345679</div>
-					<div>no</div>
-					<div>yes</div>
-					<div>oregon</div>
-					<div>Unated State</div>
+				<div v-for="u in usersList" :key="u.id" class="user-data-row">
+					<div>{{ u.fullName }}</div>
+					<div>{{ u.balance }}</div>
+					<div class="active-user">{{ u.isActive ? 'yes' : 'no' }}</div>
+					<div>{{ u.registered }}</div>
+					<div>{{ u.state }}</div>
+					<div>{{ u.country  }}</div>
 				</div>
 			</div>
 		</div>
@@ -72,14 +46,16 @@ export default {
 	name: 'Home',
 	data(){
 		return {
-			isLoading: false,
+			sortedColumn: 'fullName',
+			isLoading: true,
 			isError: false,
 			isNoData: false,
+			fixedUsersList: [],
 			usersList: []
 		}
 	},
 	methods: {
-		getUsers: ()=>{
+		getUsers(){
 			const getUsersUrl = 'https://fww-demo.herokuapp.com/';
 
 			this.isLoading = true;
@@ -91,23 +67,47 @@ export default {
 					return response.json();
 				}
 			}).then((data)=>{
-				console.log(data);
 				this.isLoading = false;
-				data && data.length > 0 ? this.fillUserdDataArray() : this.isNoData = true;
+				if(data){
+					data.forEach(country => {
+						country.state.forEach(state => {
+							state.users.forEach((user) => {
+								this.addUserToArray(country, state, user);					
+							});
+						});
+					});
+					this.usersList.sort((a,b)=>(a.fullName > b.fullName) ? 1 : -1);
+				}
+
 			}).catch((error)=>{
 				console.warn(error);
 				this.isLoading = false;
 				this.isError = true;
 			});
 		},
-		fillUserdDataArray(data){
-			this.usersList = data;
-			console.log('fill users array...');
-			// proci kroz svaki i formatirati kesh brojeve
-			// data.forEach((user)=>{});
+		addUserToArray(country, state, user){
+			let userObj;
+			userObj = user;
+			userObj.state = state.name;
+			userObj.country = country.country;
+			// userObj.milliseconds = this.stringDatetimeToMiliseconds(user.registered);
+			this.fixedUsersList.push(userObj);
+			this.usersList.push(userObj);
 		},
-		formatNumber(num) {
-			return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+		stringDatetimeToMiliseconds(str) {
+			if(str.length>0){
+				return Date.parse(str);
+			}
+			return '';
+		},
+		filter(event){
+			console.log(event);
+		},
+		sortByColumn(event){
+			const column = event.target.id;
+			this.sortedColumn = column;
+			this.usersList.sort((a,b)=>(a[column] > b[column]) ? 1 : -1);
+			console.log(column);
 		}
 	},
 	mounted(){
@@ -125,33 +125,77 @@ export default {
 			max-width: 300px;
 			margin-bottom: 2em;
 			position: relative;
+			i{
+				position: absolute;
+				top: calc(50% - 10px);
+				left: 10px;
+				width: 20px;
+				height: 20px;
+				&::before{
+					font-size: 20px;
+					color: $grey;
+				}
+			}
 			input{
 				width: 100%;
 				border: none;
-				padding: 15px;
+				padding: 15px 15px 15px 40px;
 				border-radius: $border-radious;
+				&::placeholder{
+					color: $grey;
+				}
 			}
 		}
 		.users-table{
+			border: 1px solid $blue-dark;
+			border-top-left-radius: 11px;
+			border-top-right-radius: 11px;
 			.users-table-header{
 				display: flex;
-				justify-content: flex-start;
+				justify-content: space-between;
 				div{
-					flex-grow: 1;
+					cursor: pointer;
 					background-color: $blue-very-dark;
 					color: $white;
-					padding: 7px;
-					&#name{
-						flex-grow: 2;
+					font-weight: bold;
+					position: relative;
+					@include tableCell();
+					i{
+						position: absolute;
+						top: 8px;
+						left: 7px;
 					}
-					&#name{
-						flex-grow: 0.5;
+					&:hover{
+						text-decoration: underline;
 					}
 					&:first-child{
 						border-top-left-radius: $border-radious;
 					}
 					&:last-child{
 						border-top-right-radius: $border-radious;
+					}
+				}
+			}
+			.users-data-container{
+				.user-data-row{
+					display: flex;
+					justify-content: flex-start;
+					cursor: pointer;
+					.active-user{
+						text-transform: uppercase;
+					}
+					&:nth-child(2n+2){
+						background: $white;
+					}
+					&:hover{
+						// background-color: $blue-dark;
+						background-color: $blue;
+						color: $white;
+					}
+					div{
+						@include tableCell();
+						padding-top: 10px;
+						padding-bottom: 10px;
 					}
 				}
 			}
