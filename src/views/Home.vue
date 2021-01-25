@@ -1,22 +1,15 @@
 <template>
-	<header class="container">
-		<nav>
-			<router-link to="/">Home</router-link>
-			<router-link to="/about">About</router-link>
-		</nav>
-		<h1>List of users</h1>
-	</header>
+	
+	<Header></Header>
+
 	<section class="container data-container">
-		<div class="input-holder">
-			<i class="fas fa-search"></i>
-			<input @input="filter" type="text" placeholder="Search...">
-		</div>
+		<Filter @filterUsers="filter" :fixedUsersList="fixedUsersList" :usersList="usersList"></Filter>
 
-		<div v-if="isLoading === true" class="loading">Loading... Please wait.</div>
-		<div v-if="!isLoading && isNoUser" class="no-data">No users found.</div>
-		<div v-if="!isLoading && isError" class="err">There was an error. Please try again.</div>
+		<div v-if="(usersList.length===0 && dataLoadeing.isLoading) || (dataLoadeing.isLoading && !isError)" class="loading">Loading... Please wait.</div>
+		<div v-if="(usersList.length===0 && !dataLoadeing.isLoading) || (!dataLoadeing.isLoading && isNoUser)" class="no-data">No users found.</div>
+		<div v-if="!dataLoadeing.isLoading && isError" class="err">There was an error. Please try again.</div>
 
-		<div v-if="!isLoading && !isError && !isNoUser" class="users-table">
+		<div v-if="usersList.length>0 && !dataLoadeing.isLoading && !isError && !isNoUser" class="users-table">
 			<div class="users-table-header">
 				<div id="fullName" @click="sortByColumn">Name <i v-if="sortedColumn === 'fullName'" class="fas fa-sort-down"></i></div>
 				<div id="balance" @click="sortByColumn">Balance <i v-if="sortedColumn === 'balance'" class="fas fa-sort-down"></i></div>
@@ -42,14 +35,23 @@
 </template>
 
 <script>
+import Header from '../components/Header.vue';
+import Filter from '../components/Filter.vue';
+
+
 export default {
 	name: 'Home',
+	components:{ Header, Filter },
 	data(){
 		return {
 			sortedColumn: 'fullName',
-			isLoading: true,
-			isError: false,
-			isNoData: false,
+			searchBy: 'fullName',
+			dataLoadeing: {
+				isLoading: true,
+				isError: false,
+				isNoData: false
+			},
+			openSearchList: false,
 			fixedUsersList: [],
 			usersList: []
 		}
@@ -58,7 +60,7 @@ export default {
 		getUsers(){
 			const getUsersUrl = 'https://fww-demo.herokuapp.com/';
 
-			this.isLoading = true;
+			this.dataLoadeing.isLoading = true;
 			this.isError = false;
 			this.isNoData = false;
 
@@ -67,7 +69,7 @@ export default {
 					return response.json();
 				}
 			}).then((data)=>{
-				this.isLoading = false;
+				this.dataLoadeing.isLoading = false;
 				if(data){
 					data.forEach(country => {
 						country.state.forEach(state => {
@@ -81,7 +83,7 @@ export default {
 
 			}).catch((error)=>{
 				console.warn(error);
-				this.isLoading = false;
+				this.dataLoadeing.isLoading = false;
 				this.isError = true;
 			});
 		},
@@ -90,9 +92,9 @@ export default {
 			userObj = user;
 			userObj.state = state.name;
 			userObj.country = country.country;
-			// userObj.milliseconds = this.stringDatetimeToMiliseconds(user.registered);
 			this.fixedUsersList.push(userObj);
 			this.usersList.push(userObj);
+			// console.log(userObj);
 		},
 		stringDatetimeToMiliseconds(str) {
 			if(str.length>0){
@@ -100,13 +102,13 @@ export default {
 			}
 			return '';
 		},
-		filter(event){
-			console.log(event);
-		},
+		filter(filteredList){
+			this.usersList = [...filteredList];
+		}, 
 		sortByColumn(event){
 			const column = event.target.id;
 			this.sortedColumn = column;
-			this.usersList.sort((a,b)=>(a[column] > b[column]) ? 1 : -1);
+			this.usersList.sort((a,b)=>(a[column] > b[column]) ? 1 : -1);			
 			console.log(column);
 		}
 	},
@@ -120,32 +122,7 @@ export default {
 	section.container.data-container{
 		padding-top: 2em;
 		padding-bottom: 2em;
-		.input-holder{
-			width: 100%;
-			max-width: 300px;
-			margin-bottom: 2em;
-			position: relative;
-			i{
-				position: absolute;
-				top: calc(50% - 10px);
-				left: 10px;
-				width: 20px;
-				height: 20px;
-				&::before{
-					font-size: 20px;
-					color: $grey;
-				}
-			}
-			input{
-				width: 100%;
-				border: none;
-				padding: 15px 15px 15px 40px;
-				border-radius: $border-radious;
-				&::placeholder{
-					color: $grey;
-				}
-			}
-		}
+		
 		.users-table{
 			border: 1px solid $blue-dark;
 			border-top-left-radius: 11px;
@@ -169,10 +146,10 @@ export default {
 						text-decoration: underline;
 					}
 					&:first-child{
-						border-top-left-radius: $border-radious;
+						border-top-left-radius: $border-radius;
 					}
 					&:last-child{
-						border-top-right-radius: $border-radious;
+						border-top-right-radius: $border-radius;
 					}
 				}
 			}

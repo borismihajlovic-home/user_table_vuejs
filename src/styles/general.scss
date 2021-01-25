@@ -8,6 +8,11 @@
     width: 10%;
   }
 }
+
+@mixin formElement {
+  
+}
+
 @mixin elements-box-shadow {}
 
 
@@ -27,7 +32,8 @@ body{
 }
 
 button,
-input{
+input,
+select{
   outline: none;
 }
 
