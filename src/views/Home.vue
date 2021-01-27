@@ -13,6 +13,10 @@
 		
 	</section>
 
+	<section class="container pagination-buttons-container">
+		<button class="previous"><i class="fas fa-chevron-left"></i></button>
+		<button class="next"><i class="fas fa-chevron-right"></i></button>
+	</section>
 
 	<footer></footer>
 </template>
@@ -111,5 +115,24 @@ export default {
 	section.container.data-container{
 		padding-top: 2em;
 		padding-bottom: 2em;
+	}
+	section.pagination-buttons-container{
+		padding-bottom: 2em;
+		display: flex;
+		justify-content: center;
+		button{
+			background-color: $white;
+			width: 40px;
+			height: 40px;
+			border: 1px solid $blue-dark;
+			border-radius: 50%;
+			cursor: pointer;
+			&:hover{
+				background-color: yellowgreen;
+			}
+		}
+		.previous{
+			margin-right: 15px;
+		}
 	}
 </style>
