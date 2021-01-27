@@ -10,12 +10,12 @@
 		</div>
 		<div class="users-data-container">
 			<div v-for="u in usersToShow" :key="u.id" class="user-data-row">
-				<div>{{ u.fullName }}</div>
-				<div>{{ u.balance }}</div>
+				<div :title="u.fullName">{{ u.fullName }}</div>
+				<div :title="u.balance">{{ u.balance }}</div>
 				<div class="active-user">{{ u.isActive ? 'yes' : 'no' }}</div>
-				<div>{{ u.registered }}</div>
-				<div>{{ u.state }}</div>
-				<div>{{ u.country  }}</div>
+				<div :title="u.registered">{{ u.registered }}</div>
+				<div :title="u.state">{{ u.state }}</div>
+				<div :title="u.country">{{ u.country  }}</div>
 			</div>
 		</div>
 	</div>
@@ -86,6 +86,12 @@ export default {
 				@include tableCell();
 				padding-top: 10px;
 				padding-bottom: 10px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				&:hover{
+					cursor: default;
+				}
 			}
 		}
 	}
