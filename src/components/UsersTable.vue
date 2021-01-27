@@ -1,5 +1,5 @@
 <template>
-	<div v-if="usersList.length>0 && !isLoading && !isError && !isNoUser" class="users-table">
+	<div v-if="usersToShow.length>0 && !isLoading && !isError && !isNoUser" class="users-table">
 		<div class="users-table-header">
 			<div id="fullName" @click="sortByColumn">Name <i v-if="sortedColumn === 'fullName'" class="fas fa-sort-down"></i></div>
 			<div id="balance" @click="sortByColumn">Balance <i v-if="sortedColumn === 'balance'" class="fas fa-sort-down"></i></div>
@@ -9,7 +9,7 @@
 			<div id="country" @click="sortByColumn">Country <i v-if="sortedColumn === 'country'" class="fas fa-sort-down"></i></div>
 		</div>
 		<div class="users-data-container">
-			<div v-for="u in usersList" :key="u.id" class="user-data-row">
+			<div v-for="u in usersToShow" :key="u.id" class="user-data-row">
 				<div>{{ u.fullName }}</div>
 				<div>{{ u.balance }}</div>
 				<div class="active-user">{{ u.isActive ? 'yes' : 'no' }}</div>
@@ -23,7 +23,7 @@
 
 <script>
 export default {
-	props: ['usersList', 'isError', 'isLoading', 'isNoUser'],
+	props: ['usersToShow', 'isError', 'isLoading', 'isNoUser'],
 	data(){
 		return{
 			sortedColumn: 'fullName'

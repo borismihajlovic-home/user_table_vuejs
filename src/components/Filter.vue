@@ -1,9 +1,9 @@
 <template>
 	<div class="input-holder">
 		<i class="fas fa-search"></i>
-		<input @input="filter" type="text" placeholder="Search...">
-		<div class="search-help-list-container">
-			<div class="search-help-list-button" @click="toggleSearchList">{{ searchBy === 'fullName' ? 'full name' : searchBy === 'isActive'? 'active' : searchBy }}</div>
+		<input @input="filter" v-model="filterValue" type="text" placeholder="Search...">
+		<div class="search-list-container">
+			<div class="search-list-button" @click="toggleSearchList">{{ searchBy === 'fullName' ? 'full name' : searchBy === 'isActive'? 'active' : searchBy }}</div>
 			<div class="search-list-box" :class="{opened: openSearchList}">
 				<div class="search-list-item" @click="selectSearchBy('fullName')">Full Name</div>
 				<div class="search-list-item" @click="selectSearchBy('balance')">Balance</div>
@@ -13,33 +13,50 @@
 				<div class="search-list-item" @click="selectSearchBy('country')">Country</div>
 			</div>
 		</div>
+		<div class="pagination-step-container">
+			<div class="paination-step-button" @click="togglePaginationList">{{ paginationStep }}</div>
+			<div class="pagination-step-list" :class="{opened: openPaginationList}">
+				<span @click="selectPaginationStep(20)">20</span>
+				<span @click="selectPaginationStep(50)">50</span>
+				<span @click="selectPaginationStep(100)">100</span>
+			</div>
+		</div>
 	</div>
 </template>
 
 <script>
 export default {
-	props: ['fixedUsersList'],
+	// props: ['fixedUsersList'],
 	data(){
 		return{
+			filterValue: '',
 			searchBy: 'fullName',
-			openSearchList: false
+			openSearchList: false,
+			openPaginationList: false,
+			paginationStep: 20
 		}
 	},
-	emits: ['filter-users'],
+	emits: ['filter-users', 'pagination-step'],
 	methods: {
 		toggleSearchList(){
+			this.openPaginationList = false;
 			this.openSearchList = !this.openSearchList;
+		},
+		togglePaginationList(){
+			this.openSearchList = false;
+			this.openPaginationList = !this.openPaginationList;
 		},
 		selectSearchBy(value){
 			this.searchBy = value;
 			this.toggleSearchList();			
 		},
-		filter(event){
-			const filterValue = event.target.value;
-			const filterByColumn = this.searchBy;
-			let filteredList = [];
-			filteredList = this.fixedUsersList.filter(user => user[filterByColumn].toLowerCase().includes(filterValue.toLowerCase()));
-			this.$emit('filter-users', filteredList);
+		selectPaginationStep(value){
+			this.paginationStep = value;
+			this.togglePaginationList();
+			this.$emit('pagination-step', {step: value});
+		},
+		filter(){
+			this.$emit('filter-users', {filterByValue: this.filterValue, filterByColumn: this.searchBy});
 		}
 	}
 }
@@ -72,10 +89,12 @@ export default {
 			color: $grey;
 		}
 	}
-	.search-help-list-container{
+	.search-list-container,
+	.pagination-step-container{
 		position: relative;
 		display: inline-block;
-		.search-help-list-button{
+		.search-list-button,
+		.paination-step-button{
 			width: 200px;
 			border: none;
 			padding: 0 40px 0 15px;
@@ -97,7 +116,8 @@ export default {
 				transform: rotate(45deg);
 			}
 		}
-		.search-list-box{
+		.search-list-box,
+		.pagination-step-list{
 			position: absolute;
 			top: 120%;
 			left: 0;
@@ -112,13 +132,19 @@ export default {
 			&.opened{
 				display: block;
 			}
-			.search-list-item{
+			div,
+			span{
+				display: block;
 				cursor: pointer;
 				&:hover{
 					background-color: $grey-lite;
 					font-weight: bold;
 				}
 			}
+		}
+		.paination-step-button{
+			width: 100px;
+			margin-left: 10px;
 		}
 
 	}

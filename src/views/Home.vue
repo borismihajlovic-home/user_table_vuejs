@@ -3,13 +3,16 @@
 	<Header></Header>
 
 	<section class="container data-container">
-		<Filter @filterUsers="filterHandler" :fixedUsersList="fixedUsersList"></Filter>
-		<UsersTable @sortBy="sortingHandler" :usersList="usersList" :isError="dataLoadeing.isError" :isLoading="dataLoadeing.isLoading" :isNoUser="dataLoadeing.isNoUser"></UsersTable>
+		<Filter @filterUsers="filterHandler" @paginationStep="paginationStepHandler"></Filter>
 		
 		<div v-if="(usersList.length===0 && dataLoadeing.isLoading) || (dataLoadeing.isLoading && !dataLoadeing.isError)" class="loading">Loading... Please wait.</div>
 		<div v-if="(usersList.length===0 && !dataLoadeing.isLoading) || (!dataLoadeing.isLoading && dataLoadeing.isNoUser)" class="no-data">No users found.</div>
 		<div v-if="!dataLoadeing.isLoading && dataLoadeing.isError" class="err">There was an error. Please try again.</div>
+		
+		<UsersTable @sortBy="sortingHandler" :usersToShow="usersToShow" :isError="dataLoadeing.isError" :isLoading="dataLoadeing.isLoading" :isNoUser="dataLoadeing.isNoUser"></UsersTable>
+		
 	</section>
+
 
 	<footer></footer>
 </template>
@@ -26,13 +29,19 @@ export default {
 	data(){
 		return {
 			searchBy: 'fullName',
+			pagination: {
+				step: 20,
+				from: 0,
+				to: 20
+			},
 			dataLoadeing: {
 				isLoading: true,
 				isError: false,
 				isNoData: false
 			},
 			fixedUsersList: [],
-			usersList: []
+			usersList: [],
+			usersToShow: []
 		}
 	},
 	methods: {
@@ -58,6 +67,7 @@ export default {
 						});
 					});
 					this.usersList.sort((a,b)=>(a.fullName > b.fullName) ? 1 : -1);
+					this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
 				}
 
 			}).catch((error)=>{
@@ -75,14 +85,16 @@ export default {
 			this.usersList.push(userObj);
 			// console.log(userObj);
 		},
-		stringDatetimeToMiliseconds(str) {
-			if(str.length>0){
-				return Date.parse(str);
-			}
-			return '';
+		paginationStepHandler(paginationObj){
+			console.log(this.pagination);
+			this.pagination.step = paginationObj.step;
+			this.pagination.from = 0;
+			this.pagination.to = paginationObj.step;
+			this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
 		},
-		filterHandler(filteredList){
-			this.usersList = [...filteredList];
+		filterHandler(filterObj){
+			this.usersList = this.fixedUsersList.filter(user => user[filterObj.filterByColumn].toLowerCase().includes(filterObj.filterByValue.toLowerCase()));
+			this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
 		}, 
 		sortingHandler(sortValue){
 			const column = sortValue;
