@@ -5,8 +5,8 @@
 	<section class="container data-container">
 		<Filter @filterUsers="filterHandler" @paginationStep="paginationStepHandler"></Filter>
 		
-		<div v-if="(usersList.length===0 && dataLoadeing.isLoading) || (dataLoadeing.isLoading && !dataLoadeing.isError)" class="loading">Loading... Please wait.</div>
-		<div v-if="(usersList.length===0 && !dataLoadeing.isLoading) || (!dataLoadeing.isLoading && dataLoadeing.isNoUser)" class="no-data">No users found.</div>
+		<Loader v-if="(usersList.length===0 && dataLoadeing.isLoading) || (dataLoadeing.isLoading && !dataLoadeing.isError)"></Loader>
+		<div v-if="(usersList.length===0 && !dataLoadeing.isLoading) || (!dataLoadeing.isLoading && dataLoadeing.isNoUser)" class="no-data">No users found...</div>
 		<div v-if="!dataLoadeing.isLoading && dataLoadeing.isError" class="err">There was an error. Please try again.</div>
 		
 		<UsersTable @sortBy="sortingHandler" :usersToShow="usersToShow" :isError="dataLoadeing.isError" :isLoading="dataLoadeing.isLoading" :isNoUser="dataLoadeing.isNoUser"></UsersTable>
@@ -25,11 +25,12 @@
 import Header from '../components/Header.vue';
 import Filter from '../components/Filter.vue';
 import UsersTable from '../components/UsersTable.vue';
+import Loader from '../components/Loader.vue';
 
 
 export default {
 	name: 'Home',
-	components:{ Header, Filter, UsersTable },
+	components:{ Header, Filter, UsersTable, Loader },
 	data(){
 		return {
 			searchBy: 'fullName',
@@ -134,6 +135,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+	.no-data,
+	.err{
+		text-align: center;
+		padding: 2em;
+		font-size: 2rem;
+		font-weight: bold;
+		color: #dd9c36;
+		text-shadow: 2px 2px 4px #CE5937;
+	}
+	.err{
+		color: red;
+		text-shadow: 2px 2px 4px #CE5937;
+	}
 	section.container.data-container{
 		padding-top: 2em;
 		padding-bottom: 2em;
@@ -151,7 +165,7 @@ export default {
 			&.clicable{
 				cursor: pointer;
 				&:hover{
-					background-color: yellowgreen;
+					background-color: rgba($color: $yellow, $alpha: 0.5);
 				}
 			}
 		}

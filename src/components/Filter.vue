@@ -137,7 +137,7 @@ export default {
 				display: block;
 				cursor: pointer;
 				&:hover{
-					background-color: $grey-lite;
+					background: rgba($color: $yellow, $alpha: 0.5);
 					font-weight: bold;
 				}
 			}
