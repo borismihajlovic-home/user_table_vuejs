@@ -33,8 +33,9 @@ export default {
 	methods: {
 		sortByColumn(event){
 			const sortByValue = event.target.id;
+			const isReversed = this.sortedColumn === sortByValue;
 			this.sortedColumn = sortByValue;
-			this.$emit('sort-by', sortByValue);
+			this.$emit('sort-by', {sortValue: sortByValue, isReversed});
 		}
 	}
 }
@@ -50,7 +51,7 @@ export default {
 		justify-content: space-between;
 		div{
 			cursor: pointer;
-			background-color: $blue-very-dark;
+			background-color: $orange;
 			color: $white;
 			font-weight: bold;
 			position: relative;
@@ -75,17 +76,11 @@ export default {
 		.user-data-row{
 			display: flex;
 			justify-content: flex-start;
-			cursor: pointer;
 			.active-user{
 				text-transform: uppercase;
 			}
 			&:nth-child(2n+2){
-				background: $white;
-			}
-			&:hover{
-				// background-color: $blue-dark;
-				background-color: $blue;
-				color: $white;
+				background: rgba($color: $yellow, $alpha: 0.5);
 			}
 			div{
 				@include tableCell();

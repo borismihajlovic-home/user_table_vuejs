@@ -13,9 +13,9 @@
 		
 	</section>
 
-	<section class="container pagination-buttons-container">
-		<button class="previous"><i class="fas fa-chevron-left"></i></button>
-		<button class="next"><i class="fas fa-chevron-right"></i></button>
+	<section v-if="usersToShow.length>0" class="container pagination-buttons-container">
+		<button class="previous" :class="{clicable: !isFirstPage}" @click="nextPreviousPage" :disabled="isFirstPage"><i class="fas fa-chevron-left"></i></button>
+		<button class="next" :class="{clicable: !isLastPage}" @click="nextPreviousPage" :disabled="isLastPage"><i class="fas fa-chevron-right next"></i></button>
 	</section>
 
 	<footer></footer>
@@ -38,6 +38,8 @@ export default {
 				from: 0,
 				to: 20
 			},
+			isFirstPage: true,
+			isLastPage: false,
 			dataLoadeing: {
 				isLoading: true,
 				isError: false,
@@ -49,6 +51,26 @@ export default {
 		}
 	},
 	methods: {
+		setUsersToShowArray(){
+			this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
+		},
+		nextPreviousPage(e){
+			const isNext = e.target.classList.contains('next');
+			if(isNext){
+				console.log('Next page...');
+				this.pagination.from += this.pagination.step;
+				this.pagination.to += this.pagination.step;
+				this.isFirstPage = false;
+				this.isLastPage = this.usersToShow.length < this.pagination.step;
+			}else{
+				console.log('Previous page...');
+				this.pagination.from<this.pagination.step ? this.pagination.from = 0 : this.pagination.from -= this.pagination.step;
+				this.pagination.to -= this.pagination.step;
+				this.pagination.from==0 ? this.isFirstPage = true : null;
+				this.isLastPage = false;
+			}
+			this.setUsersToShowArray();
+		},
 		getUsers(){
 			const getUsersUrl = 'https://fww-demo.herokuapp.com/';
 
@@ -71,7 +93,7 @@ export default {
 						});
 					});
 					this.usersList.sort((a,b)=>(a.fullName > b.fullName) ? 1 : -1);
-					this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
+					this.setUsersToShowArray();
 				}
 
 			}).catch((error)=>{
@@ -90,19 +112,19 @@ export default {
 			// console.log(userObj);
 		},
 		paginationStepHandler(paginationObj){
-			console.log(this.pagination);
 			this.pagination.step = paginationObj.step;
 			this.pagination.from = 0;
 			this.pagination.to = paginationObj.step;
-			this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
+			this.setUsersToShowArray();
 		},
 		filterHandler(filterObj){
 			this.usersList = this.fixedUsersList.filter(user => user[filterObj.filterByColumn].toLowerCase().includes(filterObj.filterByValue.toLowerCase()));
-			this.usersToShow = this.usersList.filter((user, index) => index>=this.pagination.from && index<this.pagination.to);
+			this.setUsersToShowArray();
 		}, 
-		sortingHandler(sortValue){
-			const column = sortValue;
-			this.usersList.sort((a,b)=>(a[column] > b[column]) ? 1 : -1);			
+		sortingHandler(sortObj){
+			const column = sortObj.sortValue;
+			sortObj.isReversed ? this.usersList.reverse() : this.usersList.sort((a,b)=>(a[column] > b[column]) ? 1 : -1);
+			this.setUsersToShowArray();
 		}
 	},
 	mounted(){
@@ -126,9 +148,11 @@ export default {
 			height: 40px;
 			border: 1px solid $blue-dark;
 			border-radius: 50%;
-			cursor: pointer;
-			&:hover{
-				background-color: yellowgreen;
+			&.clicable{
+				cursor: pointer;
+				&:hover{
+					background-color: yellowgreen;
+				}
 			}
 		}
 		.previous{
