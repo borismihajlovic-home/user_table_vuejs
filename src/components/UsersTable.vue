@@ -51,7 +51,8 @@ export default {
 		justify-content: space-between;
 		div{
 			cursor: pointer;
-			background-color: $orange;
+			// background-color: $orange;
+			background-color: $blue-very-dark-text;
 			color: $white;
 			font-weight: bold;
 			position: relative;
